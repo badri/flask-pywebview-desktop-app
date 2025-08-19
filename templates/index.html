@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Desktop App</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 600px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+        
+        p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .response {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .tech-stack {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+        
+        .tech-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Flask + pywebview Desktop App</h1>
+        <p>A cross-platform desktop application built with Flask, pywebview, and Qt</p>
+        
+        <button class="btn" onclick="testAPI()">Test Flask API</button>
+        <button class="btn" onclick="showPlatform()">Show Platform Info</button>
+        
+        <div class="response" id="response">
+            Click a button to see the magic happen! ✨
+        </div>
+        
+        <div class="tech-stack">
+            <div class="tech-item">🐍 Python 3.11</div>
+            <div class="tech-item">🌶️ Flask</div>
+            <div class="tech-item">🖥️ pywebview</div>
+            <div class="tech-item">🎨 Qt5</div>
+            <div class="tech-item">📦 PyInstaller</div>
+            <div class="tech-item">🔄 GitHub Actions</div>
+        </div>
+    </div>
+    
+    <script>
+        async function testAPI() {
+            const response = document.getElementById('response');
+            response.innerHTML = '⏳ Loading...';
+            
+            try {
+                const result = await fetch('/api/hello');
+                const data = await result.json();
+                response.innerHTML = `📡 API Response: ${data.message}`;
+            } catch (error) {
+                response.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+        
+        function showPlatform() {
+            const response = document.getElementById('response');
+            const info = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                cookieEnabled: navigator.cookieEnabled,
+                onLine: navigator.onLine
+            };
+            
+            response.innerHTML = `
+                <div style="text-align: left; font-family: monospace; font-size: 0.9em;">
+                    <strong>🖥️ Platform Info:</strong><br>
+                    Platform: ${info.platform}<br>
+                    Language: ${info.language}<br>
+                    Online: ${info.onLine ? '✅' : '❌'}<br>
+                    Cookies: ${info.cookieEnabled ? '✅' : '❌'}
+                </div>
+            `;
+        }
+        
+        // Show welcome message on load
+        window.onload = function() {
+            setTimeout(() => {
+                document.getElementById('response').innerHTML = '👋 Welcome! This is running in a native desktop window!';
+            }, 500);
+        };
+    </script>
+</body>
+</html>
