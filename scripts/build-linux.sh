@@ -102,11 +102,14 @@ run_in_container "
 
 print_success "System dependencies installed"
 
-# Set up Python environment
+# Set up Python environment and install dependencies
 print_status "Setting up Python $PYTHON_VERSION environment..."
 run_in_container "
     export PATH=/opt/python/$PYTHON_VERSION/bin:\$PATH && \
-    python3 -m pip install --upgrade pip setuptools wheel
+    export QT_QPA_PLATFORM=offscreen && \
+    python3 -m pip install --upgrade pip setuptools wheel && \
+    echo 'Python version:' && python3 --version && \
+    echo 'Pip version:' && pip --version
 "
 
 print_success "Python environment ready"
@@ -116,7 +119,10 @@ print_status "Installing Python dependencies..."
 run_in_container "
     export PATH=/opt/python/$PYTHON_VERSION/bin:\$PATH && \
     export QT_QPA_PLATFORM=offscreen && \
-    pip install -r requirements.txt
+    pip install -r requirements.txt && \
+    echo 'Checking PyInstaller installation:' && \
+    which pyinstaller && \
+    pyinstaller --version
 "
 
 print_success "Python dependencies installed"
@@ -127,9 +133,13 @@ run_in_container "
     export PATH=/opt/python/$PYTHON_VERSION/bin:\$PATH && \
     export QT_QPA_PLATFORM=offscreen && \
     export DISPLAY=:99 && \
+    echo 'Starting Xvfb...' && \
     Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 & \
-    sleep 2 && \
-    pyinstaller app.spec --clean --noconfirm
+    sleep 3 && \
+    echo 'Current directory:' && pwd && \
+    echo 'Available files:' && ls -la && \
+    echo 'Running PyInstaller...' && \
+    pyinstaller app.spec --clean --noconfirm --log-level INFO
 "
 
 print_success "Application built successfully"
@@ -138,8 +148,9 @@ print_success "Application built successfully"
 print_status "Creating distribution archive..."
 run_in_container "
     cd dist && \
+    echo 'Contents of dist directory:' && ls -la && \
     tar -czf ${APP_NAME}-linux-manylinux_2_28_x86_64.tar.gz $APP_NAME && \
-    ls -la ${APP_NAME}-linux-manylinux_2_28_x86_64.tar.gz
+    echo 'Archive created:' && ls -la ${APP_NAME}-linux-manylinux_2_28_x86_64.tar.gz
 "
 
 # Copy the built archive to host
@@ -154,7 +165,20 @@ run_in_container "
     export PATH=/opt/python/$PYTHON_VERSION/bin:\$PATH && \
     export QT_QPA_PLATFORM=offscreen && \
     cd dist/$APP_NAME && \
-    timeout 10s ./MyApp --help || echo 'Executable can be launched (timed out as expected for GUI app)'
+    echo 'Executable info:' && \
+    ls -la MyApp && \
+    file MyApp && \
+    echo 'Testing executable (will timeout for GUI apps):' && \
+    timeout 5s ./MyApp --version 2>&1 || echo 'Executable launches (timed out as expected for GUI app)'
+"
+
+# Show final information
+print_status "Build summary..."
+run_in_container "
+    echo 'Final build information:' && \
+    echo 'Python version:' && /opt/python/$PYTHON_VERSION/bin/python3 --version && \
+    echo 'PyInstaller version:' && /opt/python/$PYTHON_VERSION/bin/pyinstaller --version && \
+    echo 'Archive size:' && ls -lh dist/${APP_NAME}-linux-manylinux_2_28_x86_64.tar.gz
 "
 
 # Cleanup
