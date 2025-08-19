@@ -33,13 +33,23 @@ qt_datas = []
 
 if sys.platform == 'win32':
     # Windows-specific Qt paths
-    import PyQt5
-    qt_path = os.path.dirname(PyQt5.__file__)
-    qt_datas.extend([
-        (os.path.join(qt_path, 'Qt5', 'bin', 'Qt5WebEngineCore.dll'), 'PyQt5/Qt5/bin'),
-        (os.path.join(qt_path, 'Qt5', 'resources'), 'PyQt5/Qt5/resources'),
-        (os.path.join(qt_path, 'Qt5', 'translations'), 'PyQt5/Qt5/translations'),
-    ])
+    try:
+        import PyQt5
+        qt_path = os.path.dirname(PyQt5.__file__)
+        qt_datas.extend([
+            (os.path.join(qt_path, 'Qt5', 'bin', 'Qt5WebEngineCore.dll'), 'PyQt5/Qt5/bin'),
+            (os.path.join(qt_path, 'Qt5', 'resources'), 'PyQt5/Qt5/resources'),
+            (os.path.join(qt_path, 'Qt5', 'translations'), 'PyQt5/Qt5/translations'),
+        ])
+    except ImportError:
+        pass
+
+# Check for icon files
+icon_file = None
+if sys.platform == 'win32' and os.path.exists('icon.ico'):
+    icon_file = 'icon.ico'
+elif sys.platform == 'darwin' and os.path.exists('icon.icns'):
+    icon_file = 'icon.icns'
 
 block_cipher = None
 
@@ -86,7 +96,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='icon.ico'  # Optional: add your app icon
+    icon=icon_file  # Only set if icon file exists
 )
 
 coll = COLLECT(
@@ -102,10 +112,13 @@ coll = COLLECT(
 
 # macOS app bundle (optional)
 if sys.platform == 'darwin':
+    # Check for macOS icon file
+    mac_icon = 'icon.icns' if os.path.exists('icon.icns') else None
+    
     app = BUNDLE(
         coll,
         name='MyApp.app',
-        icon='icon.icns',  # macOS icon format
+        icon=mac_icon,  # Only set if icon file exists
         bundle_identifier='com.yourcompany.myapp',
         info_plist={
             'NSHighResolutionCapable': 'True',
