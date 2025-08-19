@@ -9,6 +9,7 @@
 - **Native packaging**: Single executable files using PyInstaller
 - **Automated builds**: GitHub Actions CI/CD for all platforms
 - **Qt integration**: Uses Qt5 for consistent cross-platform experience
+- **manylinux support**: Compatible with manylinux_2_28_x86_64 for broad Linux compatibility
 
 ## Quick Start
 
@@ -16,6 +17,7 @@
 
 - Python 3.11
 - Git
+- Docker (for Linux builds)
 
 ### Development Setup
 
@@ -48,13 +50,41 @@
 
 ## Building Executables
 
-### Local Build
+### Local Build (Current Platform)
 
 ```bash
 # Build using the spec file
 pyinstaller app.spec
 
 # Output will be in dist/MyApp/
+```
+
+### Linux Build (manylinux_2_28_x86_64)
+
+For faster Linux builds without waiting for CI/CD, use our Docker-based build scripts:
+
+#### Option 1: Quick Docker Build
+```bash
+chmod +x scripts/quick-linux-build.sh
+./scripts/quick-linux-build.sh
+```
+
+#### Option 2: Full manylinux Build Script
+```bash
+chmod +x scripts/build-linux.sh
+./scripts/build-linux.sh
+```
+
+#### Option 3: Manual Docker Build
+```bash
+# Build Docker image
+docker build -f Dockerfile.linux -t flask-pywebview-linux .
+
+# Run build
+docker run --rm -v "$(pwd)/dist-linux:/output" flask-pywebview-linux
+
+# Extract results
+docker cp $(docker create flask-pywebview-linux):/workspace/dist/MyApp-linux-manylinux_2_28_x86_64.tar.gz ./
 ```
 
 ### Platform-specific Notes
@@ -68,8 +98,9 @@ pyinstaller app.spec
 - May require code signing for distribution
 
 **Linux:**
-- Requires system Qt5 libraries
+- Uses manylinux_2_28_x86_64 for broad compatibility
 - Output: `dist/MyApp/MyApp`
+- Compatible with most modern Linux distributions
 
 ## Automated Builds
 
@@ -99,9 +130,13 @@ flask-pywebview-desktop-app/
 ├── app.py                 # Main application entry point
 ├── app.spec              # PyInstaller configuration
 ├── requirements.txt      # Python dependencies
+├── Dockerfile.linux      # Linux build container
 ├── templates/
 │   └── index.html       # Main UI template
 ├── static/              # CSS, JS, images (add your assets here)
+├── scripts/
+│   ├── build-linux.sh   # Full Linux build script
+│   └── quick-linux-build.sh  # Quick Docker build
 ├── .github/
 │   └── workflows/
 │       └── build.yml    # CI/CD configuration
@@ -114,8 +149,22 @@ flask-pywebview-desktop-app/
 - **Frontend**: HTML/CSS/JavaScript
 - **Desktop Integration**: pywebview with Qt5
 - **Packaging**: PyInstaller
+- **Linux Compatibility**: manylinux_2_28_x86_64
 - **CI/CD**: GitHub Actions
 - **Platforms**: Windows, macOS, Linux
+
+## Development Workflow
+
+### Fast Linux Development Loop
+
+Instead of waiting for CI/CD queue:
+
+1. **Make changes to your code**
+2. **Test locally**: `python app.py`
+3. **Quick Linux build**: `./scripts/quick-linux-build.sh`
+4. **Test the executable** on your target Linux system
+
+This gives you a ~2-3 minute feedback loop instead of waiting 30+ minutes for CI.
 
 ## Customization
 
@@ -157,11 +206,16 @@ Update `app.spec` to:
    - This is common with PyInstaller builds
    - Consider code signing for production releases
 
+4. **Docker build fails**
+   - Ensure Docker is running: `docker info`
+   - Try clearing Docker cache: `docker system prune`
+
 ### Development Tips
 
 - Set `console=True` in `app.spec` for debugging
 - Use `webview.start(debug=True)` for development
 - Check GitHub Actions logs for build issues
+- Use local Docker builds for faster Linux testing
 
 ## Contributing
 
@@ -181,7 +235,8 @@ If you encounter issues:
 
 1. Check the [Issues](https://github.com/badri/flask-pywebview-desktop-app/issues) page
 2. Review the GitHub Actions build logs
-3. Create a new issue with details about your problem
+3. Try local Docker builds for debugging
+4. Create a new issue with details about your problem
 
 ---
 
