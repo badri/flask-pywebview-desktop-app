@@ -1,0 +1,73 @@
+# Dockerfile for building Linux executable using manylinux_2_28_x86_64
+FROM quay.io/pypa/manylinux_2_28_x86_64:latest
+
+# Set working directory
+WORKDIR /workspace
+
+# Install system dependencies for Qt5 and GUI libraries
+RUN yum update -y && \
+    yum install -y \
+        gcc \
+        gcc-c++ \
+        make \
+        qt5-qtbase-devel \
+        qt5-qtwebengine-devel \
+        libX11-devel \
+        libXext-devel \
+        libXrender-devel \
+        libXrandr-devel \
+        libXcursor-devel \
+        libXinerama-devel \
+        libXi-devel \
+        libGL-devel \
+        mesa-libGL-devel \
+        alsa-lib-devel \
+        fontconfig-devel \
+        freetype-devel \
+        dbus-devel \
+        xorg-x11-server-Xvfb && \
+    yum clean all
+
+# Set up Python 3.11 environment
+ENV PATH=/opt/python/cp311-cp311/bin:$PATH
+ENV PYTHONPATH=/opt/python/cp311-cp311/lib/python3.11/site-packages
+ENV QT_QPA_PLATFORM=offscreen
+
+# Upgrade pip and install build tools
+RUN python3 -m pip install --upgrade pip setuptools wheel
+
+# Copy project files
+COPY requirements.txt .
+COPY app.py .
+COPY app.spec .
+COPY templates/ templates/
+COPY static/ static/
+
+# Install Python dependencies
+RUN pip install -r requirements.txt
+
+# Create build script
+RUN echo '#!/bin/bash\n\
+set -e\n\
+export DISPLAY=:99\n\
+export QT_QPA_PLATFORM=offscreen\n\
+\n\
+# Start virtual display\n\
+Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &\n\
+sleep 2\n\
+\n\
+# Build with PyInstaller\n\
+echo "Building application..."\n\
+pyinstaller app.spec --clean --noconfirm\n\
+\n\
+# Create distribution archive\n\
+cd dist\n\
+tar -czf MyApp-linux-manylinux_2_28_x86_64.tar.gz MyApp\n\
+\n\
+echo "Build completed successfully!"\n\
+echo "Output: MyApp-linux-manylinux_2_28_x86_64.tar.gz"\n\
+ls -la MyApp-linux-manylinux_2_28_x86_64.tar.gz\n\
+' > /build.sh && chmod +x /build.sh
+
+# Default command
+CMD ["/build.sh"]
