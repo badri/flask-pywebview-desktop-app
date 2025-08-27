@@ -34,7 +34,6 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
-    a.scripts,
     a.binaries,
     a.zipfiles,
     a.datas,
@@ -42,8 +41,8 @@ exe = EXE(
     name='MyApp',
     debug=False,
     bootloader_ignore_signals=False,
-    strip=True,
-    upx=True,
+    strip=False,
+    upx=False,
     console=False,  # Set to True for debugging
     disable_windowed_traceback=False,
     argv_emulation=False,
