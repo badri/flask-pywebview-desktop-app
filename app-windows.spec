@@ -8,17 +8,11 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 flask_datas = collect_data_files('flask')
 
 
-# Check for icon files
-icon_file = None
-if sys.platform == 'win32' and os.path.exists('icon.ico'):
-    icon_file = 'icon.ico'
-elif sys.platform == 'darwin' and os.path.exists('icon.icns'):
-    icon_file = 'icon.icns'
 
 block_cipher = None
 
 a = Analysis(
-    ['app.py'],  # Your main Flask app file
+    ['.\\app.py'],  # Your main Flask app file
     pathex=['.\\dist'],
     binaries=[],
     datas=flask_datas + [
@@ -55,7 +49,6 @@ exe = EXE(
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
-    entitlements_file=None,
-    icon=icon_file  # Only set if icon file exists
+    entitlements_file=None
 )
 
