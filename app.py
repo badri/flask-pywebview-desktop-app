@@ -3,14 +3,9 @@ import os
 import sys
 import threading
 import time
-import platform
 from flask import Flask, render_template, jsonify
 import webview
 
-# Force Qt on Windows and Linux
-current_platform = platform.system().lower()
-if current_platform in ['windows', 'linux']:
-    os.environ['PYWEBVIEW_GUI'] = 'qt'
 
 # Create Flask app
 app = Flask(__name__)
@@ -45,9 +40,7 @@ def main():
         resizable=True
     )
     
-    # Start the webview with Qt forced on Windows/Linux
-    gui = 'qt' if current_platform in ['windows', 'linux'] else None
-    webview.start(debug=False, gui=gui)
+    webview.start(debug=False)
 
 if __name__ == '__main__':
     main()
